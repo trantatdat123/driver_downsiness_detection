@@ -6,3 +6,4 @@ checkpoints/
 runs/
 *.pt
 *.onnx
+*.task

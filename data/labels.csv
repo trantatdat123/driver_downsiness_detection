@@ -1,55 +1,55 @@
-video_id,label,class_name,num_frames
-A,1,Drowsy,1411
-B,1,Drowsy,315
-C,1,Drowsy,335
-D,1,Drowsy,179
-E,1,Drowsy,962
-F,1,Drowsy,415
-G,1,Drowsy,499
-H,1,Drowsy,508
-I,1,Drowsy,1095
-J,1,Drowsy,474
-K,1,Drowsy,630
-L,1,Drowsy,732
-M,1,Drowsy,777
-N,1,Drowsy,1156
-O,1,Drowsy,1097
-P,1,Drowsy,963
-Q,1,Drowsy,562
-R,1,Drowsy,204
-S,1,Drowsy,487
-T,1,Drowsy,933
-U,1,Drowsy,420
-V,1,Drowsy,653
-W,1,Drowsy,1162
-X,1,Drowsy,1749
-Y,1,Drowsy,1112
-ZA,1,Drowsy,621
-ZB,1,Drowsy,1551
-ZC,1,Drowsy,1346
-a,0,Non Drowsy,1252
-b,0,Non Drowsy,409
-c,0,Non Drowsy,400
-d,0,Non Drowsy,1005
-e,0,Non Drowsy,1000
-g,0,Non Drowsy,109
-h,0,Non Drowsy,571
-i,0,Non Drowsy,1045
-j,0,Non Drowsy,717
-k,0,Non Drowsy,538
-l,0,Non Drowsy,381
-m,0,Non Drowsy,473
-n,0,Non Drowsy,957
-o,0,Non Drowsy,671
-p,0,Non Drowsy,190
-q,0,Non Drowsy,521
-r,0,Non Drowsy,522
-s,0,Non Drowsy,457
-u,0,Non Drowsy,510
-v,0,Non Drowsy,1002
-w,0,Non Drowsy,493
-x,0,Non Drowsy,1143
-y,0,Non Drowsy,1500
-za,0,Non Drowsy,1054
-zb,0,Non Drowsy,1237
-zc,0,Non Drowsy,1288
+video_id,label,class_name,num_frames,split
+A,1,Drowsy,1411,test
+B,1,Drowsy,315,train
+C,1,Drowsy,335,train
+D,1,Drowsy,179,train
+E,1,Drowsy,962,train
+F,1,Drowsy,415,train
+G,1,Drowsy,499,train
+H,1,Drowsy,508,train
+I,1,Drowsy,1095,train
+J,1,Drowsy,474,train
+K,1,Drowsy,630,train
+L,1,Drowsy,732,test
+M,1,Drowsy,777,train
+N,1,Drowsy,1156,test
+O,1,Drowsy,1097,train
+P,1,Drowsy,963,test
+Q,1,Drowsy,562,train
+R,1,Drowsy,204,test
+S,1,Drowsy,487,train
+T,1,Drowsy,933,train
+U,1,Drowsy,420,test
+V,1,Drowsy,653,test
+W,1,Drowsy,1162,train
+X,1,Drowsy,1749,train
+Y,1,Drowsy,1112,train
+ZA,1,Drowsy,621,train
+ZB,1,Drowsy,1551,train
+ZC,1,Drowsy,1346,train
+a,0,Non Drowsy,1252,test
+b,0,Non Drowsy,409,train
+c,0,Non Drowsy,400,train
+d,0,Non Drowsy,1005,train
+e,0,Non Drowsy,1000,train
+g,0,Non Drowsy,109,train
+h,0,Non Drowsy,571,train
+i,0,Non Drowsy,1045,train
+j,0,Non Drowsy,717,train
+k,0,Non Drowsy,538,train
+l,0,Non Drowsy,381,test
+m,0,Non Drowsy,473,train
+n,0,Non Drowsy,957,test
+o,0,Non Drowsy,671,train
+p,0,Non Drowsy,190,test
+q,0,Non Drowsy,521,train
+r,0,Non Drowsy,522,test
+s,0,Non Drowsy,457,train
+u,0,Non Drowsy,510,test
+v,0,Non Drowsy,1002,test
+w,0,Non Drowsy,493,train
+x,0,Non Drowsy,1143,train
+y,0,Non Drowsy,1500,train
+za,0,Non Drowsy,1054,train
+zb,0,Non Drowsy,1237,train
+zc,0,Non Drowsy,1288,train
