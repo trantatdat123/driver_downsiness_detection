@@ -1,0 +1,18 @@
+raw_data_dir: "data/raw"
+
+class_folders:
+  Non Drowsy: 0
+  Drowsy: 1
+
+image_extensions:
+  - ".jpg"
+  - ".jpeg"
+  - ".png"
+  - ".bmp"
+  - ".webp"
+
+# Mọi ảnh có cùng nhóm chữ cái bắt đầu thuộc cùng 1 video (vd: a_1.jpg, a2.jpg, a_1_2.png)
+filename_pattern: "^(?P<video_id>[A-Za-z]+)(?P<rest>.*)$"
+
+output_labels_csv: "data/labels.csv"
+output_frames_manifest_csv: "data/frames_manifest.csv"
