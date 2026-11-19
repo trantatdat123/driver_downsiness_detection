@@ -5,7 +5,7 @@
 Hệ thống phân tích luồng video trực diện tài xế qua 3 giai đoạn học sâu nhân quả (causal) kết hợp 1 bộ máy ra quyết định theo thời gian:
 
 ```mermaid
-flowchart TD
+flowchart LR
     Input["Khung hình gốc (H x W x 3)"] --> Stage1
 
     Stage1["Giai đoạn 1: Phát hiện vùng mắt (YOLOv8)
