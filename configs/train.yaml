@@ -1,0 +1,42 @@
+data:
+  labels_csv: "data/labels.csv"
+  frames_manifest_csv: "data/frames_manifest.csv"
+  cache_dir: "data/cache/eye_crops"
+  val_ratio: 0.2
+  window_size: 30
+  temporal_stride: 3
+  window_step_train: 25
+  window_step_eval: 15
+
+configs:
+  vision_config: "configs/vision.yaml"
+  temporal_config: "configs/temporal_gru.yaml"
+
+train:
+  seed: 42
+  input_mode: "crop_cache"
+  auto_build_cache: true
+  extract_batch_size: 32
+  epochs: 30
+  batch_size: 16
+  num_workers: 0
+  backbone_lr: 1.0e-4
+  temporal_lr: 3.0e-4
+  weight_decay: 2.0e-2
+  grad_clip_norm: 1.0
+  freeze_backbone: false
+  use_pos_weight: true
+  augment: true
+  label_smoothing: 0.05
+  warmup_epochs: 3
+  early_stopping_patience: 8
+  preload_cache: true
+  gpu_augment: true
+  channels_last: true
+  use_compile: false
+  prefetch_factor: 2
+  amp: true
+  eval_threshold: 0.5
+  selection_metric: "auroc"
+  checkpoint_dir: "checkpoints"
+  device: null

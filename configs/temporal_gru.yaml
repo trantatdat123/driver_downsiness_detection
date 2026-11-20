@@ -1,0 +1,8 @@
+temporal:
+  arch: "gru"
+  input_dim: 130
+  hidden_size: 64
+  num_layers: 1
+  dropout: 0.35
+  use_layer_norm: true
+  window_size: 30

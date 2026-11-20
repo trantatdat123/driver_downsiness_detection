@@ -60,14 +60,14 @@ Ký hiệu: $B$ = batch size, $T$ = độ dài chuỗi/cửa sổ thời gian (`
   * Khi có `1` mắt: so sánh $c_x$ với tâm khuôn mặt (hoặc $W/2$ nếu không có box mặt) để gán đúng slot `0` hoặc `1`; slot còn lại zero-padding.
   * Khi có `0` mắt: giữ nguyên frame (không drop), điền `0.0` cho cả 2 crop và đặt `eye_mask = [0.0, 0.0]`.
 
-### 3.2 Giai đoạn 2 — `SharedEyeEncoder` (`models/`)
-* Một backbone CNN nhẹ dùng chung trọng số (ví dụ `MobileNetV3-Small`, `ResNet18`, `EfficientNet-B0` qua `torchvision`/`timm`) xử lý đồng thời cả 2 mắt qua batch gộp `(B * T * 2, 3, H_eye, W_eye)`.
-* Bắt buộc nhân embedding với `eye_mask` sau CNN (`e_L = e_L * v_L`, `e_R = e_R * v_R`) để triệt tiêu vector bias sinh ra từ ảnh `0.0` của mắt bị mất dấu, sau đó mới nối `[v_L, v_R]` thành `f_t` kích thước `2D + 2`.
+### 3.2 Giai đoạn 2 — `SharedEyeEncoder` (`models/backbone.py`)
+* Backbone CNN nhẹ dùng chung trọng số (**custom `ResNet18`** tự cài đặt từ đầu bằng PyTorch, không dùng hàm dựng sẵn từ `torchvision`/`timm`) xử lý đồng thời cả 2 mắt qua batch gộp `(B * T * 2, 3, H_eye, W_eye)` và chiếu về vector embedding chiều $D$ (mặc định $D = 128$).
+* Bắt buộc nhân embedding với `eye_mask` sau CNN (`e_L = e_L * v_L`, `e_R = e_R * v_R`) để triệt tiêu vector bias sinh ra từ ảnh `0.0` của mắt bị mất dấu, sau đó mới nối `[v_L, v_R]` thành `f_t` kích thước `2D + 2` (`258` với $D = 128$).
 
-### 3.3 Giai đoạn 3 — `TemporalHead` (`models/`)
-Hỗ trợ 2 biến thể hoán đổi qua config nhưng cùng giao diện đầu vào `(B, T, 2*D + 2)` và đầu ra `(B, T, 1)`:
-* **`CausalGRU` / `CausalLSTM`:** `bidirectional=False`, hỗ trợ nhận và trả về `hidden_state` (`h_n`, `c_n`) để suy luận liên tục theo từng frame trên luồng real-time và reset khi đổi video/tài xế.
-* **`CausalTransformer`:** Thêm Positional Encoding theo bước thời gian, sử dụng `nn.TransformerEncoder` với mặt nạ nhân quả tam giác trên (`-inf` với $j > i$, hoặc `is_causal=True`) nhằm chặn tuyệt đối rò rỉ thông tin tương lai.
+### 3.3 Giai đoạn 3 — `TemporalHead` (`models/temporal.py`)
+Hỗ trợ 3 biến thể hoán đổi qua config (`configs/temporal_{gru,lstm,transformer}.yaml`) với cùng giao diện đầu vào `(B, T, 2*D + 2)` và đầu ra `(B, T, 1)`:
+* **`CausalGRU` / `CausalLSTM`:** `bidirectional=False`, hỗ trợ nhận và trả về `hidden_state` (`h_n`, `c_n`) qua `forward_with_state()` để suy luận liên tục theo từng frame và reset khi đổi `video_id`/tài xế.
+* **`CausalTransformer`:** Thêm Positional Encoding theo bước thời gian, sử dụng `nn.TransformerEncoder` với mặt nạ nhân quả tam giác trên (`-inf` với $j > i$, kết hợp `is_causal=True`) nhằm chặn tuyệt đối rò rỉ thông tin tương lai.
 
 ### 3.4 Giai đoạn 4 — Bộ Máy Quyết Định Cảnh Báo (`inference/`)
 * **EMA Smoothing:** $\tilde{p}_t = \alpha \cdot p_t + (1 - \alpha) \cdot \tilde{p}_{t-1}$.
@@ -99,11 +99,22 @@ Hỗ trợ 2 biến thể hoán đổi qua config nhưng cùng giao diện đầ
 
 ---
 
-## 5. Chiến Lược Huấn Luyện 2 Pha & Suy Luận Real-Time
+## 5. Quy Trình Huấn Luyện Theo Bộ Ảnh (`ADR-001` – `ADR-004`) & Suy Luận
 
-1. **Pha 1 — Trích xuất & Cache Đặc Trưng (`tools/extract_features.py`):** Chạy YOLOv8 + CNN (hoặc lưu eye crops / feature vectors) một lần theo đúng thứ tự frame để tăng tốc độ thử nghiệm kiến trúc `TemporalHead` và tránh lặp lại chi phí I/O video.
-2. **Pha 2 — Huấn luyện Chuỗi Thời Gian & Fine-tune (`engine/train_temporal.py`):** Huấn luyện `TemporalHead` (và fine-tune `SharedEyeEncoder` với learning rate nhỏ hơn nếu dùng raw/crop cache) trên các tập chia độc lập theo `subject_id`.
-   * **Chế độ nhãn mức Video/Clip (Many-to-One trên cửa sổ trượt — Mặc định):** Khi dataset là ảnh cắt từ video và chỉ có 1 nhãn `y_clip` $\in \{0, 1\}$ cho cả đoạn video, `Dataset` sắp xếp ảnh theo đúng `frame_index` trong từng `video_id` (không ghép chéo video) và lấy mẫu theo `temporal_stride` (ví dụ hạ từ 30 FPS xuống `5–10 FPS`) để cửa sổ `W` phủ đủ `3–6 giây` lịch sử. `TemporalHead` vẫn xuất `logits` `(B, W, 1)` đúng hợp đồng kiến trúc, còn vòng lặp train lấy bước cuối `logits[:, -1, :]` `(B, 1)` tính `BCEWithLogitsLoss` với `y_clip`.
-3. **Suy Luận Thời Gian Thực (`inference/stream_runner.py`):**
-   * Luồng Producer (Camera I/O) đẩy frame mới nhất vào hàng đợi `maxsize=1` (ghi đè frame cũ).
-   * Luồng Consumer (Compute) chạy Stage 1–2 trên đúng `1` frame hiện tại, đẩy $f_t$ vào `collections.deque(maxlen=W)` (hoặc cập nhật `hidden_state` của GRU), chạy Stage 3 + Stage 4 (đọc `sigmoid(logits[:, -1, :])`), và log `ms/frame` cùng `FPS`.
+### 5.1 Chuẩn Bị Dữ Liệu & Chia Tập Độc Lập Theo Người Lái
+* **Định dạng dữ liệu (`ADR-003`):** Dữ liệu không đọc từ file video thô mà từ các bộ ảnh đã trích xuất, quản lý qua `data/labels.csv` (`54` videos: `video_id, label, class_name, num_frames, split`) và `data/frames_manifest.csv` (`41,793` frames: `video_id, frame_idx, label, image_path`), sắp xếp số học tự nhiên tăng dần theo `frame_idx` trong từng `video_id`.
+* **Chia tập theo `subject_id` (`ADR-004`):** `video_id` chữ hoa (`A..ZC`) và chữ thường (`a..zc`) thuộc cùng một tài xế (`subject_id = video_id.lower()`). Tập `test` (`7` chủ thể / `14` videos / `10,353` frames) đã được cố định độc lập trong `data/labels.csv`; tập `val` khi huấn luyện chỉ được tách từ pool `split == "train"` (`21` chủ thể / `40` videos / `31,440` frames) theo đúng `subject_id`, tuyệt đối không tách ngẫu nhiên theo frame hoặc làm rò rỉ sang `test`.
+
+### 5.2 Huấn Luyện 2 Pha Theo Từng Bộ Ảnh Của Từng `video_id`
+1. **Pha 1 — Stage 1 cố định & Cache Eye Crops (`tools/extract_features.py`):**
+   * `YOLOv8EyeCropper` sử dụng weight `models/yolo_best.pt` đã fine-tune (`yolov8n`, `imgsz=320`, `{0: eye, 1: face}`, lấy **top-1 `face`** và **top-2 `eye`** theo confidence).
+   * Chạy detector một lần theo đúng thứ tự `frame_idx` của từng `video_id` để lưu cache `(eye_crops, eye_mask)` (hoặc chạy trực tiếp từ ảnh gốc nếu tắt cache), tránh lặp lại chi phí I/O và YOLO qua từng epoch.
+2. **Pha 2 — Lấy Mẫu Cửa Sổ Trượt & Huấn Luyện Many-to-One (`engine/train_temporal.py`, `ADR-002`):**
+   * **Cửa sổ trượt nội bộ từng video:** `Dataset` gom frame theo đúng `video_id`, giữ nguyên thứ tự `frame_idx` (tuyệt đối không ghép chéo giữa hai `video_id`), lấy mẫu cửa sổ dài `W` bước theo `temporal_stride` (phủ `3–6 giây` lịch sử; tương thích cả video ngắn nhất `109` frame như `g`).
+   * **Hàm mất mát Many-to-One:** `TemporalHead` (`CausalGRU` / `CausalLSTM` / `CausalTransformer`) vẫn xuất toàn chuỗi `logits` `(B, W, 1)` theo hợp đồng kiến trúc; vòng lặp train lấy bước cuối `logits[:, -1, :]` `(B, 1)` tính `BCEWithLogitsLoss` (hỗ trợ `pos_weight`) với nhãn mức video `y_clip` $\in \{0, 1\}$.
+   * **Fine-tune phối hợp:** Huấn luyện `TemporalHead` với learning rate chính (`temporal_lr`) và đồng thời fine-tune `SharedEyeEncoder` với learning rate nhỏ hơn (`backbone_lr`, hoặc đóng băng CNN khi thử nghiệm nhanh Stage 3).
+   * **Chọn mô hình & Đánh giá (`engine/evaluate.py`):** Đánh giá trên `val` theo `Recall`, `Precision`, `F1-Score`, `AUROC` (mức window và tổng hợp mức `video_id`), lưu `best.pt` và chỉ chạy đánh giá cuối cùng trên `split == "test"` sau khi chốt mô hình.
+
+### 5.3 Suy Luận Thời Gian Thực (`inference/stream_runner.py`)
+* Luồng Producer (Camera I/O) đẩy frame mới nhất vào hàng đợi `maxsize=1` (ghi đè frame cũ).
+* Luồng Consumer (Compute) chạy Stage 1–2 trên đúng `1` frame hiện tại, đẩy $f_t$ vào `collections.deque(maxlen=W)` (hoặc cập nhật `hidden_state` của GRU/LSTM), chạy Stage 3 + Stage 4 (đọc `sigmoid(logits[:, -1, :])`), và log `ms/frame` cùng `FPS`.
