@@ -84,7 +84,12 @@ Hỗ trợ 2 biến thể hoán đổi qua config nhưng cùng giao diện đầ
 ├── RULES.md                    # Quy chuẩn lập trình & ràng buộc kỹ thuật
 ├── MEMORY.md                   # Trạng thái dự án, ADRs & nhật ký thực nghiệm
 ├── configs/                    # File cấu hình YAML (extract.yaml, temporal_gru.yaml, ...)
-├── data/                       # Dataset, DataLoader, chia tập theo subject_id
+├── src/
+│   ├── download_data.py        # Tải DDD từ Kaggle (kagglehub) về data/raw/
+│   └── preprocessing/          # build_labels.py + inspect_and_run.ipynb
+├── data/
+│   ├── raw/                    # Ảnh gốc {Drowsy,Non Drowsy}/ (gitignored, tải bằng src/download_data.py)
+│   └── processed/              # labels.csv (có cột split), frames_manifest.csv (image_path tương đối)
 ├── models/                     # YOLOv8EyeCropper, SharedEyeEncoder, TemporalHead, pipeline ONNX
 ├── engine/                     # Huấn luyện (train_temporal.py), đánh giá (evaluate.py)
 ├── inference/                  # Suy luận thời gian thực (stream_runner.py, tách luồng I/O)

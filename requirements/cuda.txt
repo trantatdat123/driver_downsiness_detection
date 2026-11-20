@@ -1,0 +1,6 @@
+# Windows/Linux có GPU NVIDIA: pip install -r requirements/cuda.txt
+# cu132 cần driver hỗ trợ CUDA >= 13.2 (xem `nvidia-smi`). Có bản cu134 nếu driver mới hơn.
+--extra-index-url https://download.pytorch.org/whl/cu132
+-r base.txt
+torch==2.15.0+cu132
+torchvision==0.29.2+cu132

@@ -1,0 +1,4 @@
+# Mac (MPS) / máy không có GPU NVIDIA: pip install -r requirements/cpu.txt
+-r base.txt
+torch==2.15.0
+torchvision==0.29.2

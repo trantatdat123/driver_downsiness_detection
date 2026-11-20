@@ -1,4 +1,8 @@
+# Thư mục ảnh gốc (tương đối so với root repo). Ghi đè bằng biến môi trường DDD_RAW_DIR nếu để data ở chỗ khác.
 raw_data_dir: "data/raw"
+
+# Nguồn tải dataset (dùng bởi src/download_data.py)
+kaggle_dataset: "ismailnasri20/driver-drowsiness-dataset-ddd"
 
 class_folders:
   Non Drowsy: 0
@@ -14,5 +18,5 @@ image_extensions:
 # Mọi ảnh có cùng nhóm chữ cái bắt đầu thuộc cùng 1 video (vd: a_1.jpg, a2.jpg, a_1_2.png)
 filename_pattern: "^(?P<video_id>[A-Za-z]+)(?P<rest>.*)$"
 
-output_labels_csv: "data/labels.csv"
-output_frames_manifest_csv: "data/frames_manifest.csv"
+output_labels_csv: "data/processed/labels.csv"
+output_frames_manifest_csv: "data/processed/frames_manifest.csv"

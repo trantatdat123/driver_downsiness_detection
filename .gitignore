@@ -7,3 +7,6 @@ runs/
 *.pt
 *.onnx
 *.task
+.venv/
+data/raw/
+data/_kaggle_download/
