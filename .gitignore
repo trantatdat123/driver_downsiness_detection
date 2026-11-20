@@ -7,3 +7,5 @@ runs/
 *.pt
 *.onnx
 *.task
+.venv/*
+data/raw/*/*.png
